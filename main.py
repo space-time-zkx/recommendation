@@ -13,6 +13,7 @@ def trainBatch(train_iter, net, criterion, optimizer):
         preds = net(data[0].cuda())
     
     # print(preds.shape,data[0].y.shape,data[0].y)
+
     cost = criterion(preds, data[0].y.long().cuda())
     # cost.backward()
     scaler.scale(cost).backward()
@@ -49,9 +50,24 @@ class averager(object):
         if self.n_count != 0:
             res = self.sum / float(self.n_count)
         return res
+def collate_batch(batch):
+
+    word_tensor = torch.tensor([[1.], [0.], [45.]])
+    label_tensor = torch.tensor([[1.]])
+
+    text_list, classes = [], []
+
+    for (_text, _class) in batch:
+        text_list.append(word_tensor)
+        classes.append(label_tensor)
+
+    text = torch.cat(text_list)
+    classes = torch.tensor(classes)
+
+    return text, classes
 if __name__ == '__main__':
-    dataset = DataSet("/root/autodl-tmp/baseline-main/cache/user_item_data.pkl")
-    train_loader = DataLoader(dataset, batch_size=1, shuffle=True)
+    dataset = DataSet("D:\code\spare_time\\recommendation\\user_item_data.pkl")
+    train_loader = DataLoader(dataset, batch_size=2, shuffle=True)
     num_items = dataset[0][1]
     model = RecGraph(num_items).cuda()
     optimizer = optim.Adam(model.parameters(), lr=0.001,

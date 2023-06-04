@@ -13,6 +13,7 @@ class DataSet:
         self.valid_set = []
         for user_id, item_data in enumerate(self.user_item_data):
             temp = []
+            # print(len(item_data))
             for time, item_id, score, review in item_data:
                 if item_id not in self.item_dict:
                     self.item_dict[item_id] = item_ctr
@@ -31,22 +32,31 @@ class DataSet:
 
         train_data = self.train_set[item]
         valid_data = self.valid_set[item]
+        # print(valid_data[1])
         rela = []
         edge_type = []
-        # print(train_data)
+        print(len(train_data))
         for i in range(len(train_data)-1):
             rela.append([train_data[i][1],train_data[i+1][1]])
             edge_type.append(0)
             rela.append([train_data[i+1][1], train_data[i][1]])
             edge_type.append(1)
+        for i in range(0,4330-len(train_data)):
+            rela.append([0,0])
+            edge_type.append(2)
+            rela.append([0,0])
+            edge_type.append(2)
         print(torch.LongTensor(rela).shape)
-        graph_data = Data(y=torch.LongTensor(valid_data[1]),edges = torch.LongTensor(rela).permute(1,0),edge_type=torch.LongTensor(edge_type))
+        graph_data = Data(y=torch.LongTensor([valid_data[1]]),edges = torch.LongTensor(rela).permute(1,0),edge_type=torch.LongTensor(edge_type))
+        # print(graph_data.y)
         return graph_data,self.item_ctr
     def __len__(self):
         return len(self.train_set)
     def read_pickle(self,path):
         with open(path, 'rb') as file:
             return pickle.load(file=file)
+
+
 if __name__ == '__main__':
     dataset = DataSet("/user_item_data.pkl")
     test = dataset[0]

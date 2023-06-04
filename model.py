@@ -12,11 +12,14 @@ class RecGraph(torch.nn.Module):
         self.num_items = num_items
         self.item_emb = nn.Embedding(self.num_items,embedding_dim)
         nn.init.normal_(self.item_emb.weight,std=0.1)
-        self.graph = RGCNConv(128,128,2,num_bases=30)
+        self.graph = RGCNConv(128,128,3,num_bases=30)
         self.linear = nn.Linear(128,num_items)
-        self.gcn = RGCNConv(128,num_items,2)
+        self.gcn = RGCNConv(128,num_items,3)
     def forward(self,data):
         x = self.item_emb(torch.LongTensor(range(self.num_items)).cuda())
+        # data.edge_type = data.edge_type.view(-1, data.edges.shape[1])
+        # print(data.edges.shape,x.shape,data.edge_type.shape)
+        # data.edge_type = data.edge_type.view(-1,data.edges.shape[2])
         graph = self.graph(x,data.edges,data.edge_type)
         graph = global_mean_pool(graph, torch.zeros_like(torch.LongTensor([graph.shape[0]])).cuda())
         graph = self.linear(graph)
